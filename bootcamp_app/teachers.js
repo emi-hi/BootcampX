@@ -15,16 +15,18 @@ const max_results = queryArgs[1]
 
 
 pool.query(`
-SELECT students.id, students.name, cohort_id as cohort_id, cohorts.name as cohort_name
-FROM students
-JOIN cohorts 
-on students.cohort_id = cohorts.id
+SELECT distinct(teachers.name) as teacher, cohorts.name as cohort
+FROM teachers
+JOIN assistance_requests on teachers.id = teacher_id
+JOIN students on assistance_requests.student_id = students.id
+JOIN cohorts on cohorts.id = students.cohort_id
 WHERE cohorts.name LIKE '%${cohort}%'
-LIMIT ${max_results};
+ORDER BY teacher
+LIMIT ${max_results || 5};
 `)
 .then(res => {
-  res.rows.forEach(user => {
-    console.log(`${user.name} has an id of ${user.id} and was in the ${user.cohort_name} cohort`);
+  res.rows.forEach(row => {
+    console.log(`${row.cohort}: ${row.teacher}`);
   })
 })
 .catch(err => console.error('query error', err.stack));
